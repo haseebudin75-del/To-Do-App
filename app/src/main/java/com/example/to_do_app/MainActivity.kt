@@ -8,11 +8,20 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -20,6 +29,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.to_do_app.ui.theme.ToDoAppTheme
 import kotlinx.coroutines.delay
 
@@ -29,30 +42,47 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ToDoAppTheme {
-                SplashScreen()
+                val navController = rememberNavController()
+                AppNavigation(navController = navController)
             }
         }
     }
 }
 
 @Composable
-fun SplashScreen() {
+fun AppNavigation(navController: NavHostController) {
+    NavHost(
+        navController = navController,
+        startDestination = "splash"
+    ) {
+        composable("splash") {
+            SplashScreen(navController)
+        }
 
+        composable("home") {
+            HomeScreen()
+        }
+    }
+}
+
+@Composable
+fun SplashScreen(navController: NavHostController) {
     var isVisible by remember { mutableStateOf(false) }
 
-    LaunchedEffect(true) {
-        delay(300)       // small delay before animation
+    LaunchedEffect(Unit) {
+        delay(300)
         isVisible = true
+        delay(2500)
 
-        delay(2500)      // splash duration (3 seconds total)
-
-        //  Later we will navigate to Home Screen here
+        navController.navigate("home") {
+            popUpTo("splash") { inclusive = true }
+        }
     }
 
     val gradient = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFFF9800),  // light orange
-            Color(0xFFFF5722)   // deep orange
+            Color(0xFFFF9800),
+            Color(0xFFFF5722)
         )
     )
 
@@ -62,18 +92,15 @@ fun SplashScreen() {
             .background(gradient),
         contentAlignment = Alignment.Center
     ) {
-
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-
             AnimatedVisibility(
                 visible = isVisible,
                 enter = fadeIn() + scaleIn()
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
                     Text(
                         text = "ToDo App",
                         fontSize = 32.sp,
@@ -84,9 +111,9 @@ fun SplashScreen() {
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = "Stay Organized ",
+                        text = "Stay Organized 🚀",
                         fontSize = 16.sp,
-                        color = Color.White.copy(alpha = 0.8f)
+                        color = Color.White.copy(alpha = 0.85f)
                     )
                 }
             }
@@ -97,5 +124,19 @@ fun SplashScreen() {
                 color = Color.White
             )
         }
+    }
+}
+
+@Composable
+fun HomeScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "Home Screen",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
