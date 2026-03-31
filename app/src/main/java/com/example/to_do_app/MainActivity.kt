@@ -68,7 +68,13 @@ fun AppNavigation(navController: NavHostController) {
         }
 
         composable("home") {
-            HomeScreen()
+            HomePage(
+                onLogoutClick = {
+                    navController.navigate("login") {
+                        popUpTo("home") { inclusive = true }
+                    }
+                }
+            )
         }
     }
 }
@@ -135,16 +141,3 @@ fun SplashScreen(navController: NavHostController) {
     }
 }
 
-@Composable
-fun HomeScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "Home Screen",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
