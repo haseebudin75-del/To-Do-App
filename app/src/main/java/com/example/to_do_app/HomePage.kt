@@ -1,7 +1,6 @@
 package com.example.to_do_app
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,37 +13,37 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.TaskAlt
-import androidx.compose.material.icons.outlined.RadioButtonUnchecked
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,6 +73,7 @@ fun HomePage(
     var nextId by remember { mutableStateOf(1) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var taskToDelete by remember { mutableStateOf<TaskItem?>(null) }
+    var selectedTab by remember { mutableStateOf(0) }
 
     val totalTasks = taskList.size
     val completedTasks = taskList.count { it.isCompleted }
@@ -92,19 +92,10 @@ fun HomePage(
             TopAppBar(
                 title = {
                     Text(
-                        text = "My To-Do List",
+                        text = if (selectedTab == 0) "My To-Do List" else "Profile",
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
-                },
-                actions = {
-                    IconButton(onClick = onLogoutClick) {
-                        Icon(
-                            imageVector = Icons.Default.Logout,
-                            contentDescription = "Logout",
-                            tint = Color.White
-                        )
-                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFFFF6F00)
@@ -112,26 +103,61 @@ fun HomePage(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    val trimmedTask = taskText.trim()
-                    if (trimmedTask.isNotEmpty()) {
-                        taskList.add(
-                            TaskItem(
-                                id = nextId,
-                                title = trimmedTask
+            if (selectedTab == 0) {
+                FloatingActionButton(
+                    onClick = {
+                        val trimmedTask = taskText.trim()
+                        if (trimmedTask.isNotEmpty()) {
+                            taskList.add(
+                                TaskItem(
+                                    id = nextId,
+                                    title = trimmedTask
+                                )
                             )
-                        )
-                        nextId++
-                        taskText = ""
-                    }
-                },
-                containerColor = Color(0xFFFF9800),
-                contentColor = Color.White
+                            nextId++
+                            taskText = ""
+                        }
+                    },
+                    containerColor = Color(0xFFFF9800),
+                    contentColor = Color.White
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add Task"
+                    )
+                }
+            }
+        },
+        bottomBar = {
+            NavigationBar(
+                containerColor = Color.White
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Task"
+                NavigationBarItem(
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0 },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Home,
+                            contentDescription = "Home"
+                        )
+                    },
+                    label = {
+                        Text("Home")
+                    }
+                )
+
+                NavigationBarItem(
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Profile"
+                        )
+                    },
+                    label = {
+                        Text("Profile")
+                    }
                 )
             }
         }
@@ -144,166 +170,182 @@ fun HomePage(
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize()
-            ) {
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            if (selectedTab == 0) {
+                Column(
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text(
-                            text = "Add New Task",
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFFF6F00)
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        OutlinedTextField(
-                            value = taskText,
-                            onValueChange = { taskText = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text("Enter your task") },
-                            placeholder = { Text("Example: Complete Android project") },
-                            shape = RoundedCornerShape(14.dp),
-                            singleLine = true,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Color(0xFFFF9800),
-                                focusedLabelColor = Color(0xFFFF9800),
-                                cursorColor = Color(0xFFFF9800)
-                            )
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Button(
-                            onClick = {
-                                val trimmedTask = taskText.trim()
-                                if (trimmedTask.isNotEmpty()) {
-                                    taskList.add(
-                                        TaskItem(
-                                            id = nextId,
-                                            title = trimmedTask
-                                        )
-                                    )
-                                    nextId++
-                                    taskText = ""
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFFFF9800)
-                            )
-                        ) {
-                            Text(
-                                text = "Add Task",
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    SummaryCard(
-                        title = "Total",
-                        count = totalTasks,
-                        modifier = Modifier.weight(1f)
-                    )
-                    SummaryCard(
-                        title = "Done",
-                        count = completedTasks,
-                        modifier = Modifier.weight(1f)
-                    )
-                    SummaryCard(
-                        title = "Pending",
-                        count = pendingTasks,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Your Tasks",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFBF5A00)
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                if (taskList.isEmpty()) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(20.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                     ) {
                         Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(30.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            modifier = Modifier.padding(16.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.TaskAlt,
-                                contentDescription = "No Tasks",
-                                tint = Color(0xFFFF9800),
-                                modifier = Modifier.size(48.dp)
+                            Text(
+                                text = "Add New Task",
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFFF6F00)
                             )
 
                             Spacer(modifier = Modifier.height(12.dp))
 
-                            Text(
-                                text = "No tasks yet",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFFBF5A00)
+                            OutlinedTextField(
+                                value = taskText,
+                                onValueChange = { taskText = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Enter your task") },
+                                placeholder = { Text("Example: Complete Android project") },
+                                shape = RoundedCornerShape(14.dp),
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color(0xFFFF9800),
+                                    focusedLabelColor = Color(0xFFFF9800),
+                                    cursorColor = Color(0xFFFF9800)
+                                )
                             )
 
-                            Spacer(modifier = Modifier.height(6.dp))
+                            Spacer(modifier = Modifier.height(12.dp))
 
-                            Text(
-                                text = "Add your first task to get started",
-                                color = Color.Gray
-                            )
-                        }
-                    }
-                } else {
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        items(taskList, key = { it.id }) { task ->
-                            TaskCard(
-                                task = task,
-                                onCheckedChange = { isChecked ->
-                                    val index = taskList.indexOfFirst { it.id == task.id }
-                                    if (index != -1) {
-                                        taskList[index] = taskList[index].copy(isCompleted = isChecked)
+                            Button(
+                                onClick = {
+                                    val trimmedTask = taskText.trim()
+                                    if (trimmedTask.isNotEmpty()) {
+                                        taskList.add(
+                                            TaskItem(
+                                                id = nextId,
+                                                title = trimmedTask
+                                            )
+                                        )
+                                        nextId++
+                                        taskText = ""
                                     }
                                 },
-                                onDeleteClick = {
-                                    taskToDelete = task
-                                    showDeleteDialog = true
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(14.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFFFF9800)
+                                )
+                            ) {
+                                Text(
+                                    text = "Add Task",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        SummaryCard(
+                            title = "Total",
+                            count = totalTasks,
+                            modifier = Modifier.weight(1f)
+                        )
+                        SummaryCard(
+                            title = "Done",
+                            count = completedTasks,
+                            modifier = Modifier.weight(1f)
+                        )
+                        SummaryCard(
+                            title = "Pending",
+                            count = pendingTasks,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "Your Tasks",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFBF5A00)
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    if (taskList.isEmpty()) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(30.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(56.dp)
+                                        .background(Color(0xFFFFE0B2), CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Home,
+                                        contentDescription = "No Tasks",
+                                        tint = Color(0xFFFF9800),
+                                        modifier = Modifier.size(28.dp)
+                                    )
                                 }
-                            )
+
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                Text(
+                                    text = "No tasks yet",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFBF5A00)
+                                )
+
+                                Spacer(modifier = Modifier.height(6.dp))
+
+                                Text(
+                                    text = "Add your first task to get started",
+                                    color = Color.Gray
+                                )
+                            }
+                        }
+                    } else {
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(taskList, key = { it.id }) { task ->
+                                TaskCard(
+                                    task = task,
+                                    onCheckedChange = { isChecked ->
+                                        val index = taskList.indexOfFirst { it.id == task.id }
+                                        if (index != -1) {
+                                            taskList[index] =
+                                                taskList[index].copy(isCompleted = isChecked)
+                                        }
+                                    },
+                                    onDeleteClick = {
+                                        taskToDelete = task
+                                        showDeleteDialog = true
+                                    }
+                                )
+                            }
                         }
                     }
                 }
+            } else {
+                ProfilePageContent(
+                    totalTasks = totalTasks,
+                    completedTasks = completedTasks,
+                    pendingTasks = pendingTasks,
+                    onLogoutClick = onLogoutClick
+                )
             }
 
             if (showDeleteDialog && taskToDelete != null) {
@@ -344,6 +386,120 @@ fun HomePage(
                     }
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun ProfilePageContent(
+    totalTasks: Int,
+    completedTasks: Int,
+    pendingTasks: Int,
+    onLogoutClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(90.dp)
+                        .background(Color(0xFFFFCC80), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Profile",
+                        tint = Color(0xFFFF6F00),
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Suryadeep Shetty",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFFF6F00)
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = "surya@example.com",
+                    color = Color.Gray,
+                    fontSize = 15.sp
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                ProfileInfoRow(label = "App Name", value = "To Do App")
+                ProfileInfoRow(label = "Role", value = "User")
+                ProfileInfoRow(label = "Tasks Created", value = totalTasks.toString())
+                ProfileInfoRow(label = "Tasks Completed", value = completedTasks.toString())
+                ProfileInfoRow(label = "Pending Tasks", value = pendingTasks.toString())
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = onLogoutClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFFF9800)
+                    )
+                ) {
+                    Text(
+                        text = "Logout",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ProfileInfoRow(
+    label: String,
+    value: String
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8F2))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = label,
+                fontWeight = FontWeight.Medium,
+                color = Color.DarkGray
+            )
+            Text(
+                text = value,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFFFF6F00)
+            )
         }
     }
 }
