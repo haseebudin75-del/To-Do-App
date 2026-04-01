@@ -429,7 +429,7 @@ fun ProfilePageContent(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Suryadeep Shetty",
+                    text = "",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFFFF6F00)
